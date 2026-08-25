@@ -107,8 +107,8 @@ A synthetic RVTools export lives in [`examples/`](examples/), so you can click t
 
 ## See RVTMA in action
 
-<!-- replace with the real YouTube link + thumbnail in videos/ -->
-[![Watch the RVTMA demo](videos/rvtma.jpg)](https://youtu.be/REPLACE_ME)
+<!-- swap for the embed once the walkthrough is published -->
+Demo video coming soon.
 
 ## Architecture
 
