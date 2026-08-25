@@ -9,7 +9,7 @@
 Feed it the spreadsheet your team already produces with RVTools, and it hands back the two deliverables a migration actually needs: a **planning document** for the PMs and stakeholders, and a **cutover playbook** for the technical team. Same wave numbers in both. No agents to install, no cluster to connect, nothing leaves the browser.
 
 <!-- screenshots: replace with real captures from a synthetic export -->
-![RVTMA dashboard](docs/dashboard.png)
+![RVTMA dashboard](docs/rvtma-dashboard.avif)
 
 ## Why RVTMA?
 
@@ -53,11 +53,11 @@ RVTMA covers the whole path from a raw RVTools export to an execution-ready plan
 
 The migration plan, three ways against the synthetic sample: the time and cost estimate, the waves packed into maintenance windows, and the per-VM execution playbook.
 
-![Migration time and cost estimate](docs/waves-1.png)
+![Migration time and cost estimate](docs/rvtma-migration-time-estimator.avif)
 
-![Migration waves packed into maintenance windows](docs/waves-2.png)
+![Migration waves packed into maintenance windows](docs/rvtma-waves.avif)
 
-![Wave Execution Playbook, per-VM detail](docs/waves-3.png)
+![Wave Execution Playbook, per-VM detail](docs/rvtma-xlsx-migration-plan.avif)
 
 ## Preparing your RVTools export
 
