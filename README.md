@@ -8,6 +8,8 @@
 
 Feed it the spreadsheet your team already produces with RVTools, and it hands back the two deliverables a migration actually needs: a **planning document** for the PMs and stakeholders, and a **cutover playbook** for the technical team. Same wave numbers in both. No agents to install, no cluster to connect, nothing leaves the browser.
 
+I wrote an entire post about the RVTMA [here](https://linuxelite.com.br/blog/rvtools-export-to-openshift-virtualization-migration-plan/).
+
 <!-- screenshots: replace with real captures from a synthetic export -->
 ![RVTMA dashboard](docs/rvtma-dashboard.avif)
 
