@@ -1,4 +1,4 @@
-# RVTMA (RVTools Migration Analyzer)
+# RVTMA (RVTools Migration Analyzer) for OpenShift
 
 [![Quay](https://img.shields.io/badge/image-quay.io%2Felastocera%2Frvtma-orange?logo=docker)](https://quay.io/repository/elastocera/rvtma)
 [![GHCR](https://img.shields.io/badge/image-ghcr.io%2Felastocera%2Frvtma-blue?logo=docker)](https://github.com/orgs/elastocera/packages/container/package/rvtma)
