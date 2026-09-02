@@ -8,7 +8,12 @@
 
 Feed it the spreadsheet your team already produces with RVTools, and it hands back the two deliverables a migration actually needs: a **planning document** for the PMs and stakeholders, and a **cutover playbook** for the technical team. Same wave numbers in both. No agents to install, no cluster to connect, nothing leaves the browser.
 
-I wrote an entire post about the RVTMA [here](https://linuxelite.com.br/blog/rvtools-export-to-openshift-virtualization-migration-plan/).
+## Read the deep dive
+
+RVTMA is the **RVTools Migration Analyzer for OpenShift**: give it the RVTools export your team already has, and it hands back cluster sizing, migration waves, a per-VM risk register, and ready-to-apply OpenShift YAML.
+
+Full walkthrough, with screenshots from real VMware-to-OpenShift migrations:
+**[RVTools Migration Analyzer for OpenShift: From Export to a Full Migration Plan](https://linuxelite.com.br/blog/rvtools-export-to-openshift-virtualization-migration-plan/)**
 
 <!-- screenshots: replace with real captures from a synthetic export -->
 ![RVTMA dashboard](docs/rvtma-dashboard.avif)
