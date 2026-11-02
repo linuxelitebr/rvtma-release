@@ -4,6 +4,215 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.10.1] - 2026-10-30 - Counted, Not Guessed
+
+A patch for OS Analysis, found while validating 2.10.0. The report printed `undefined` where it could not place an OS version, the charts and the summary cards quietly left those VMs out, and a Windows Server 2003 box came out one version check away from certified. Every VM is now counted, and the ones nobody could identify are counted as exactly that. None of this is new in 2.10.0; 2.9.1 does the same.
+
+### Fixed
+
+- **`undefined` in the OS Analysis report.** The Support Tier, Migration Notes and Support columns printed it for any OS without a version, such as "Windows Server" with no year or "Ubuntu Linux (64-bit)". They now read Certified\* (Unverified) or Commercial\* (Unverified), with "Confirm the exact version before migration" as the note, in en, pt-BR and es. Plain Certified would have been the one-line fix, and it would have told a customer that a Windows box nobody could identify is certified.
+- **The OS Analysis charts and summary cards lost the unverified VMs.** Migration Readiness, Risk Level and the Support Tier radar counted five of the seven tiers, so their bars came up short, and the tier cards added up to less than Total VMs, printed two rows down on the same screen. Each now has its own purple bucket (Needs Version Check in the charts, Unverified in the cards), kept out of Certified and Commercial and drawn only when it has VMs.
+- **Legacy Windows was filed as almost certified.** Windows Server 2003, Windows 2000, XP, NT, Vista and 8.x lost their version on the way through the OS analyzer and landed in Certified\* (Unverified), weight 95 in the readiness score. They are now named and Not Listed. On the exports we validate against that is 438 VMs, readiness scores drop by up to 6 points, and the unsupported guest OS risk card picks up the XP, NT, Vista and 8.x VMs it was missing.
+- **The OS age chart put XP, NT, Me and Vista in "5-10 years".** They have a word where the version number goes, so they found no release year and took the chart's can't-tell default. They now carry their release year and land in Legacy.
+
+### Validation
+
+GitHub Actions is still blocked by billing, so every fix was validated locally, one PR at a time: the test suite in en_US and pt_BR (1703 tests at release), a mutation pass showing each new test fails without its fix, and main against branch on 23 real RVTools exports.
+
+Before the release, the whole app ran headless on 2.10.0 and on main over all 23 exports, with hooks installed before page load to record errors, `alert`/`confirm`/`prompt`, console warnings and toasts. Every screen, every document button, and the PDFs rendered by the release image, in en, pt-BR and es. 0 errors and 0 dialogs on either side, the same warnings and toasts on both. Of 112 kinds of output, 105 came out identical, the migration plans, the Wave Execution Playbook and every other XLSX included. The other seven are the OS Analysis report and screen, the Risk Summary (PDF, Markdown and screen) and the unsupported guest OS entry in the risk register, which is what this release changes. The age chart fix landed after that run and went through the same app check on the four exports it touches.
+
+---
+
+## [2.10.0] - 2026-10-29 - Fit to Print
+
+Most of this release is about the PDF, the part of RVTMA that actually leaves the building. It now carries the issuer's brand, speaks the report language down to the page footer, draws its figures for paper instead of photographing the screen, and stops quietly rewriting backslashes on the way to pandoc. The Risk Summary is translated card by card, and the NAD output points at where the NADs actually live.
+
+### Fixed
+
+- **The PDF endpoint rewrote backslashes.** It saved each report with `echo`, and `/bin/sh` in the image is dash, whose `echo` interprets escapes: `\n` became a newline (the "ewpage" that once made us pull the Subscription Estimator page breaks), `\t` a tab, `\v` a control character that failed the whole PDF, and `\c` cut the report short right there. Now written byte for byte with `printf`. The example `printf` command in the Network Remediation Guide prints correctly for the first time.
+- **The architecture figure in the Cluster Architecture Deployment Plan.** Hosted cluster names were truncated exactly where the suffix that tells them apart lives, connectors crossed cards past four hosted clusters, and an estate with many sites got a blank page followed by a figure running over the footer. Now one figure per site, an indented tree whose lines never cross a card, full names in mono, and one square per host so cluster sizes compare at a glance.
+- **The Storage Connectivity figure.** Fifteen arrays and thirty clusters joined by curves was a ball of yarn. Now one card per array, the clusters it serves as pills with their fair share of PVCs, and a pressure bar against the config max the architect typed on the Storage Architecture screen. The report used to know only the per-vendor estimate, and now says so when that is all it has.
+- **The Datacenter Infrastructure Report charts.** They were screenshots of the dashboard canvases, so a wide monitor printed postage-stamp pies with grey 11px legends. Redrawn for paper at a fixed size, one chart per page, the host models bar at full width and at its real proportions.
+- **The workload type boxes in Cluster Architecture decide what gets built.** Unticking a type used to change nothing. A type that cannot get hosts of its own is greyed out with the reason on hover, and the boxes are wide enough for their DETECTED tag.
+- **A big PDF waits its turn** behind another render instead of timing out at 60 seconds.
+- **Browsers mixed a new `index.html` with an older release's cached CSS and JS**, which put every brand in the masthead at once. Assets are cache-busted per release, and the masthead shows exactly one brand even with stale CSS.
+- **NADs.** Each workload group gets every NAD its VMs use, shared port groups included. The NAD report verifies them where they are actually created. Export values on the NAD results screen are escaped.
+- **Smaller ones.** The migration estimator no longer prints NaN with no VMs selected. The folder config examples name real VMs instead of "Unknown VM". The PDF settings modal no longer resets the settings it does not show. The Data Source Quality doughnut prints at a size you can read. The Spanish Network Remediation Guide is 50 pages shorter after one over-long placeholder. Accents are back in the pt-BR and es report strings.
+
+### Added
+
+- **PDF brand packs.** Red Hat (default), Linux Elite and IBM Consulting, picked in PDF settings, applied to the cover, the page backgrounds and the masthead logo. The analyst named in PDF settings goes on the Server Allocation Plan cover.
+- **Translated page chrome** for pt-BR and es: cover subtitle, header, page numbers, footer and the table of contents title.
+- **The Risk Summary in pt-BR and es, card by card**, counts, variants and items included.
+- **A written answer to "why is this still in English?"**: which documents and terms change language, which deliberately do not, in the docs and in Settings.
+
+### Changed
+
+- The OS Analysis modal and the Ctrl+Shift+, settings modal are retired. The OS Analysis screen and the sidebar settings panel are the one place for each.
+- Dependency bumps: vite, vitest, js-yaml, brace-expansion, source-map-js.
+
+### Validation
+
+GitHub Actions was blocked by billing for this whole cycle, so every change here was validated locally, one PR at a time: the test suite in en_US and pt_BR (1641 tests at release), a mutation pass showing each new test fails without its fix, main against branch on real RVTools exports, and PDFs rendered by the release image's own pandoc, lualatex and rsvg-convert, in three languages and both orientations wherever layout changed.
+
+---
+
+## [2.9.1] - 2026-08-31 - One Story, Two Documents
+
+Significant work on migration wave planning. The two documents that describe a migration now agree with each other, the plan says which cluster split a wave, and a matrix of every setting combination stands between them and the next disagreement.
+
+The XLSX and the Migration Plan each cut waves with their own code. Same rules, two implementations, nothing checking they still matched. They stopped matching in 2.8.0 and nobody noticed, including the release that shipped it.
+
+### Fixed
+
+- **The Migration Plan and the Wave Execution Playbook describe the same waves again.** The cluster boundary added in 2.8.0 went into the Excel exporter's emitters; the plan has its own parallel implementation and was never touched. An ecosystem living in two clusters came out as two waves in the playbook and one in the plan. It matters because the two go to different readers: the cutover team works from the playbook, the sponsor reads the plan PDF, and neither can see the other to notice. Applied in all three emission paths, including packing, which now fills a wave from several small ecosystems within one cluster rather than reaching across to do it. Estates where every ecosystem sits in one cluster are unaffected; the plan changes shape for everyone else, in the direction 2.8.0 already took the playbook.
+
+### Added
+
+- **The plan names the cluster when the cluster is what split the wave.** Fixing the boundary without this left an ecosystem in three clusters showing as three waves with identical Datacenter, Department, Ecosystem and Complexity, and nothing to tell the rows apart. That is the state the playbook was in before 2.8.0 gave it a Cluster column. The plan carries it in the ecosystem label, beside Multi-NIC and the subwave count, because that table already runs wide in portrait. Only when the ecosystem actually spans more than one cluster: in a single-cluster estate the qualifier would distinguish nothing from nothing.
+- **A page on how waves are cut.** `docs/migration-waves.md`. What decides a wave, what is excluded and why, what the feature deliberately does not do, the two settings that change its shape, and the four things people actually hit. The "does not do" section is the point: wave ordering and wave naming have both come back from the field as bugs, and neither is one.
+
+### Validation
+
+The durable part of this release is a test that runs **both generators** over the same input and compares the VM-to-wave maps they publish. Wave numbering and labels may differ; membership may not. Thirty-two combinations of pack ecosystems, OS grouping, powered-off, guest-not-running and two cap sets, against an estate built to exercise all of them at once.
+
+Two false greens had to be cleared before that number meant anything. The first run picked the two smallest exports on hand, both with a single ecosystem in a single cluster, so the boundary never applied and the matrix passed on nothing. The second had three of its four toggle dimensions inert: the exclusion filters read powerstate, template and guest state out of the workbook rather than off the VM object, so setting those fields on the object changed no outcome at all. The test now builds a real vInfo sheet, and the harness reports whether each dimension actually produced distinct results.
+
+Against nine real RVTools exports, chosen because every one has ecosystems spanning clusters: **288 combinations, no disagreements**. The largest estate exercised was 9476 VMs across 328 ecosystems and 37 clusters.
+
+Reverting the fix fails 24 of the 53 tests in that file, which is the check that matters. A matrix that stays green over a known regression is worse than no matrix.
+
+---
+
+## [2.9.0] - 2026-08-31 - Say What You Mean
+
+The whole release came out of one afternoon of a colleague using the tool and saying what he found. Two things: a guide arriving in English when the report language was set to Portuguese, and wave ordering that did not behave the way the screen implied. Both turned out to be true, and neither was the thing anyone would have picked off a roadmap.
+
+The pattern underneath them is the same. The tool knew the answer and the interface said something else: a Settings toggle promising to translate everything, a control labelled "migration order" that ordered a calendar, a mode that solves the exact problem someone was reporting and that nothing on screen mentioned.
+
+### Added
+
+- **Five more reports follow the Report Language setting.** Subscription Estimator, Storage Architecture, the NAD Implementation Guide, the Risk Summary and the Network Remediation Guide, 233 keys per language and 699 strings in all. Commands, YAML, SKU product names, Red Hat documentation titles, MAC addresses, port groups and anything else out of the export stay English in every language, which a test enforces on the two command-heavy guides by extracting every fenced block per language and comparing them. An `nmcli` line nobody can paste is worse than an English one. The Network Remediation Guide had shipped English-only by an explicit decision, on the grounds that it was the migration engineer's bench tool; the field said the PDF is being handed to the customer-side operator who actually types the commands, so the premise was wrong and the comment now records that.
+- **The estimator says which wave grouping mode is on.** The pack-ecosystems toggle decides whether small ecosystems share a wave or each gets one of its own, and it lived in Settings with nothing on the estimator pointing at it. A plan full of one-VM waves read like the tool's opinion rather than a setting. Measured across 19 real exports, strict mode produces 4036 waves of which 1787 hold one or two VMs; packed produces 1735 of which 162 do. The strip names the active mode and points at Settings rather than repeating the toggle, so the value keeps one home.
+
+### Fixed
+
+- **The Migration Plan lost a number in Portuguese and Spanish.** The warning about VMs too large for a single migration window carries the duration of the biggest one. Both translations had dropped the placeholder, so those readers got the sentence without it. Present since 2.5.0. The duration also appears in the list directly below, so nothing was actually unreadable, but a translation should not diverge from its source unnoticed.
+- **Four reports would have served the previous language after a switch.** Each generator caches its render for the PDF path, and changing the language clears those. Risk Summary, Subscription Estimator, Storage Architecture and the Network Remediation Guide were never on that list. Harmless while all four were English-only, a stale-text bug the moment any of them got translated, and indistinguishable from a missing translation when it happened.
+- **The wave reorder arrows say what they order.** They order the maintenance-window calendar and the `.ics` that comes out of it, and never touched the wave numbering in the Wave Execution Playbook or the plan tables. The control was labelled "Waves (migration order)" and the section said it packs waves "honoring wave order", both true of the calendar and both reading as a promise about the whole plan. Someone reordered, regenerated the XLSX and reported a bug; the code was right and the label was not. The label, the section text and the plan's own schedule section now scope themselves, the last one in all three languages, because a reader holding the PDF cannot see the estimator screen.
+- **The singular case of the risk narrative did not agree with itself.** "1 item require attention before Wave 1" came from one string pluralising two independent counts. Split into clauses, which the other two languages needed anyway since neither pluralises by appending an s.
+
+### Changed
+
+- **Settings no longer promises to translate everything.** The hint read "Language used in exported reports and PDFs" with no carve-out, which is how someone set pt-BR, downloaded a guide and got English. It now names what stays English and why: the Wave Execution Playbook, and any generated YAML or commands, are read at a console rather than by a sponsor.
+
+### Validation
+
+Two static guards went in before any string moved, and both failed on their first run, which is how the two bugs above were found rather than shipped. One checks key parity across the three languages including the placeholder set per key, because a missing key silently falls back to English and only warns to a console nobody reads during a PDF export. The other checks that every cached report is cleared when the language changes.
+
+Every report got a golden-master snapshot committed before its refactor, in its own commit, so the diff proves the English did not move. Across all five, exactly one English string changed, and it was the grammar defect above.
+
+Run against the 19 real RVTools exports on hand: 8 reports in 3 languages each, **456 renders, no failures**, no unresolved keys, no unfilled placeholders, and an identical number sequence between English and each translation every time. The largest estate exercised was 9476 VMs across 305 hosts. The two reports this release did not touch were included on purpose, to catch collateral damage rather than confirm the happy path. The two translated guides were also run through pandoc and lualatex in all three languages.
+
+### Internal
+
+- **A tool for calibrating the migration time model.** `tools/mtv-conversion-stats.py` reads MTV Migration and Plan CRs and measures whether conversion overhead scales with disk size. It does not: correlation -0.02 against disk size and -0.01 against disk count across 465 real conversions, which closed the long-standing request for a disk-scaled overhead term and confirmed the flat one already in the tool. Bench tooling; the image does not carry it.
+
+---
+
+## [2.8.0] - 2026-08-26 - One Cluster at a Time
+
+Another one straight from the field. Someone planning a wave of 43 machines found it reaching across several clusters, and spent the afternoon taking the spreadsheet apart by hand to fix it.
+
+Waves group by ecosystem, which keeps an application together and is the right instinct. The problem is that an ecosystem does not stop at a cluster boundary and a migration does: live migration will not cross clusters, hosts and datastores belong to one, and the cutover team works a cluster at a time. A wave touching three clusters is a night touching three clusters.
+
+### Changed
+
+- **A migration wave no longer spans clusters.** Ecosystem is still the grouping. Cluster is now a boundary inside it, applied before the VM cap divides what is left, so a subwave reads "2 of 3 within this cluster" rather than across the estate. An ecosystem living in three clusters produces three wave sequences instead of one wave that reaches into all three. On the estate this was tested against, 132 ecosystems were spread across more than one cluster, so the shape of the plan changes for anyone in that position. Both emitters were updated: the default one and the packed mode behind the pack-ecosystems setting, which packs small ecosystems together to avoid undersized waves. Packing still does that, it just no longer reaches across a cluster to fill a wave. Fixing only the default would have left a setting that silently undid the boundary.
+
+### Added
+
+- **A Cluster column in the Migration Waves sheet, and a filter on it.** An ecosystem split across three clusters yields three waves, and without the column the analyst sees near-identical rows with no explanation. The sheet had a frozen header but no autofilter, despite a comment in the code explaining that wave labels are zero-padded so the autofilter dropdown sorts naturally. Now it has one, so the person running the cutover can pull their own night's rows instead of reading all of them. Each wave also carries the reason in its Notes cell.
+
+### Validation
+
+Run against a 7343-VM estate spread over 42 clusters. Every VM name in every wave was checked back against its real cluster: 6414 names, no wave carrying a VM from another cluster, and the sheet totals for VMs, data and hours all still agree with the rows above them, which is what proves the shifted column indices are right. Both emission modes, with OS grouping intact.
+
+---
+
+## [2.7.0] - 2026-08-25 - The Short List
+
+A customer asks for a pilot. Move these 122 machines first, the other 1678 follow later. The list arrives as a column pasted out of a spreadsheet, because that is how customers send things, and until now the answer was to pick 122 rows out of 1800 by hand, or to go edit the RVTools export before loading it and lose the audit trail along with the risk register. The Migration Time Estimator has a toggle for that now.
+
+### Added
+
+- **Select VMs for this wave (#404).** A toggle in the Migration Time Estimator that plans a migration for a chosen subset instead of the whole estate. Paste the list of VM names, or pick a cluster, and the time estimate, the waves, the schedule, the `.ics` and the Wave Execution Playbook all describe that selection, with the playbook's host, datastore and VMkernel sheets carrying only what those machines touch. Pasting reports what matched and, more usefully, what did not: a name the customer sent that is not in this export is a question for them, not something to drop in silence. Matching ignores case and stray whitespace, which is where a copied spreadsheet column usually goes wrong. Turning the toggle off returns to the whole estate but keeps the picks, so a misclick does not cost the work; only the explicit clear discards them. Nothing is persisted, deliberately: a selection is a list of customer VM names, and those do not belong on disk. The panel says so.
+- **The scope boundary, on screen (#405).** "This plan covers 122 of 1800 VMs" reads like the whole tool narrowed, and it did not. Cluster Architecture, Storage Analysis and the Subscription Estimator keep describing every VM in the export, because the ones left out still occupy hosts, datastores and VLANs until they move. Left unsaid, someone plans a pilot and quotes a target sized for 122 machines. It now sits in a caution box rather than in the same grey as the housekeeping note next to it.
+
+### Security
+
+- **nanoid bumped to 3.3.18 (#406).** Cleared an advisory where a custom generator can loop forever on a zero size. Transitive and dev-only (vitest to vite to postcss), so it never shipped in the image, but Dependabot had been failing to open the PR since 14 August and the alert was sitting open. Three lines of lockfile.
+
+---
+
+## [2.6.2] - 2026-08-18
+
+The Infrastructure Summary says how many of the VMs it counted are templates. The Estimator learned that in 2.6.1, but the report from the field was about the Virtual Machines card, which is a different screen reading the same sheet. Both say it now, in the same words.
+
+### Added
+
+- **The Infrastructure Summary names the templates behind its VM count.** The Virtual Machines card counts vInfo rows, and vInfo lists templates next to running VMs, while the Wave Execution Playbook drops them before it builds waves. The subtitle under the card now names the part that will not ride a wave. The number itself does not move: it stays honest about what the export holds. On an estate carrying exactly one template the gap between the two totals reads as an off-by-one, which is how this arrived.
+
+### Changed
+
+- **Two user-facing strings stop using a spaced hyphen as punctuation.** The templates risk card and the Database VMs note break those sentences with a period instead.
+
+---
+
+## [2.6.1] - 2026-08-14
+
+A field report about a VM count being off by one turned into something bigger than the report. The pre-flight publisher read vInfo column names literally, and a good share of RVTools exports prefix every column, so on those the risk cards counted zero and retracted themselves. The analyst saw an empty Risk Summary with no way to tell that apart from a healthy estate. Five of the eight exports on hand were in exactly that state, one of them sitting on 682 VMs with a stopped guest and 84 templates while the screen showed nothing at all. The off-by-one that started it is here too: the Migration Time Estimator now names the templates hiding inside its own total.
+
+### Added
+
+- **The Estimator names the templates behind its total (#398).** "Selected VMs" is the raw vInfo count, and vInfo lists templates next to running VMs, while the Wave Execution Playbook drops them before it builds waves. Two totals that disagreed, with nothing on screen to say why. The total stays honest about what the export holds, and a line under it names the part that will not ride a wave. On an estate carrying exactly one template that gap reads as an off-by-one, which is how it reached us.
+
+### Fixed
+
+- **The pre-flight risk cards resolve vInfo columns through the mapper (#397).** Some exports ship every column prefixed: `vInfoTemplate` for `Template`, `vInfoPowerstate` for `Powerstate`, `vInfoOS` for the guest OS. The publisher matched the literal names, so every card fed by them counted zero and retracted. Templates, stopped guests, suspended VMs, unsupported OS: all quietly absent, on five of the eight exports checked. RVToolsColumnMapper has carried both spellings all along, which is the entire reason it exists. The exports that already worked come out identical. The old-hardware card stays quiet on prefixed exports because they genuinely do not carry an HW version column, which is a different problem for a different day.
+
+### Changed
+
+- **The update check asks for 100 releases instead of 30 (#396).** The releases repo is shared with the other elastocera projects, so the rvtma tags sit behind however many releases the siblings cut in between. Nothing had fallen off the end yet, but the margin was 22 sibling releases before the newest rvtma tag left the page and the check started calling a stale version current.
+
+### Security
+
+- **js-yaml bumped to 4.3.1 (#395).** Transitive dev dependency. It does not ship in the image.
+
+---
+
+## [2.6.0] - 2026-08-04 - Table Stakes
+
+The database VMs get their own planning surface. RVTMA already knew which VMs looked like databases and counted them in aggregate, then left them scattered across the workload views where a DBA could not do much with them. This release pulls them into a dedicated Database VMs view, one row per VM with the engine named, so the sizing and licensing conversation starts from a list instead of a filter you rebuild each time. MongoDB joins Oracle and SQL Server as a recognised engine, the SQL name matcher stops missing instances that glue the word into the hostname, and the Support Data Manager finally wears the Red Hat styling the rest of the dashboard already had. The rest is the docs catching up to the code.
+
+### Added
+
+- **The Database VMs planning view (#385).** The workload detector already tagged database tiers, but only in aggregate, so a database estate read as a number on a chart and nothing you could hand to a DBA. This adds a dedicated view over the VMs it detects as databases: one row per VM, the engine (Oracle, SQL Server, MongoDB) named, so the sizing and licensing conversation starts from a list instead of a filter rebuilt by hand.
+- **MongoDB as a recognised database engine (#387).** Detection knew Oracle and SQL Server, so a Mongo fleet came through as generic Linux. MongoDB is the third engine now, and it lands in the Database VMs view with the rest.
+
+### Changed
+
+- **Broader SQL instance-name detection (#386).** The matcher keyed on "sql" standing on its own and missed the names that glue or prefix it, an instance run together with the rest of the hostname or a `sql2019` style suffix. It catches the `\bsql` and `sql\d` shapes now, so fewer SQL Server boxes hide in the general population.
+- **The Support Data Manager wears the Red Hat / PatternFly look, and its manual moved into `docs/` (#389).** The screen that edits the OS support data was still on the old styling while the rest of the dashboard moved on. It matches now, and the how-to that lived inline is in `docs/` with the other guides.
+- **ARCHITECTURE.md counts and dashboard sections brought back in line with the code (#388).** The file counts and section lists had drifted from what the app actually ships.
+- **README: a Database VMs section, and the stale v2.0 markers dropped (#390).** The README still described the feature set at a version we had left behind and said nothing about the new view.
+
+### Fixed
+
+- **The Support Data Manager's tier header rendered invisible (#389).** A latent styling bug drew a section header in the support-data editor in a colour you could not see against its background. It surfaced while restyling the screen and got fixed in the same pass.
+
+---
+
 ## [2.5.0] - 2026-07-27 - Boxes and Calendars
 
 Three headline additions and a long tail of report polish. The Migration Time Estimator can pack VMs into maintenance windows instead of assuming a flat eight-hour day, exports the schedule as an .ics you drop into a calendar, and folds the window plan into the Migration Plan PDF. The report PDFs learned to draw WARNING / NOTE / IMPORTANT as an icon and a box instead of a bare paragraph, on both the AsciiDoc and Markdown paths. And there is a Generate PDF screen now: hand it an .adoc or .md you edited by hand and it returns the styled PDF, no RVTools export required. The rest is the usual round of making the reports read the way they should have to begin with.
