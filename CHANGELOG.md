@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.10.2] - 2026-11-02 - Inside the Lines
+
+A patch for what the last two releases left on the page. PDF tables assumed names have spaces in them, and real exports do not always agree: a name with nothing to break on printed straight over the next column. The rest is a slider, a label and a number format, all small, all wrong.
+
+### Fixed
+
+- **Long names ran through the next column in three PDFs.** Datastores and hosts in the Server Allocation Plan, datacenter, department and ecosystem in the Migration Plan wave table, VMs and clusters in the Storage Analysis report. They wrap now. Over 24 real exports in three languages, overlapping words went from 594 to 132 in the Allocation Plan, 777 to 0 in the Migration Plan and 52 to 0 in Storage Analysis, and words past the margin in the Allocation Plan went from 14,634 to 0. The Allocation Plan also lost 473 pages. The catch: the break points are zero-width spaces, so a name copied out of these PDFs, or out of their Markdown or AsciiDoc source, brings invisible characters along. If a name is headed for a command, copy it from the screen.
+- **The `ifcfg` `printf` in the Network Remediation Guide ran off the page.** 2.10.0 fixed the backslashes in that command and claimed it printed correctly for the first time. It did, as far as the edge of the page: 187 characters in a box that holds 103, so the end of the command was simply not on paper. Now one value per line, same output in sh, bash and dash.
+- **Storage report numbers followed the browser's language, not the report's.** An English report from a pt-BR browser wrote `1.234` for `1,234`, in a document about capacity. The Storage Analysis and Storage Architecture reports now format numbers in the report language.
+- **One OS support tier, two names in the OS Analysis report.** The same VMs were Not Listed in one table and Unsupported in the other. Both say Not Listed now, in all three languages.
+- **The parallel migrations slider stopped at 10** while the deadline check could ask for 20. It reaches 20, and a test ties the two together.
+
+### Changed
+
+- The changelog in the public [rvtma-release](https://github.com/linuxelitebr/rvtma-release) repo now updates on every release. It stopped at 2.5.0 back when it depended on someone remembering.
+
+### Validation
+
+Every fix was validated one PR at a time: the test suite (1739 tests at release), a mutation pass showing each new test fails without its fix, and main against the previous release on real RVTools exports. GitHub Actions is running again, so these went through CI as well.
+
+Before the release, the whole app ran headless on 2.10.1 and on main over 24 exports in en, pt-BR and es: 1,440 screens, 810 PDFs rendered by the release image's toolchain and 2,289 text documents. 0 errors, 0 dialogs, 0 invalid PDFs, and every difference traced back to what its PR was allowed to change or to noise in the harness. Swapping the image under an open browser profile and reloading left 0 of 110 local files stale.
+
+Two things are known and still open. 132 overlapping words remain in the Allocation Plan on 3 exports and 28 in the Migration Time Estimate on 1, none of them new. And the sweep turned up an older bug: an export parsed within the first second after page load loses its dvPort rows, so the network YAML lists fewer VLANs. No human uploads that fast. A test harness does, ask me how I know.
+
+---
+
 ## [2.10.1] - 2026-10-30 - Counted, Not Guessed
 
 A patch for OS Analysis, found while validating 2.10.0. The report printed `undefined` where it could not place an OS version, the charts and the summary cards quietly left those VMs out, and a Windows Server 2003 box came out one version check away from certified. Every VM is now counted, and the ones nobody could identify are counted as exactly that. None of this is new in 2.10.0; 2.9.1 does the same.
