@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.10.3] - 2026-11-02 - Front Door
+
+The last of the text printing over other text, and a front door for the project.
+
+### Added
+
+- A public home for the docs, the OpenShift manifest, the changelog and the issues: [rvtma-release](https://github.com/linuxelitebr/rvtma-release), refreshed on every release, with a sample export to try it on. Picking this tool up for the first time? Start there.
+
+### Fixed
+
+- **Long service tags printed over Model in the Server Allocation Plan.** All three host tables. 132 overlapping words on 3 exports, now 0. A normal 7-character tag stays on one line and copies clean. A 20-character serial takes 3 lines in that narrow column: legible, not pretty.
+- **Department, ecosystem and size printed over each other in the Migration Time Estimate VM list.** 28 overlapping words on 1 export, now 0.
+- **The Ecosystems line in the Migration Plan ran off the page.** 49 words past the margin, by up to 47pt, and one of them reached the edge of the page. Now 0.
+
+Same catch as 2.10.2: the break points are zero-width spaces, so a wrapped name copied out of these PDFs, or out of their Markdown or AsciiDoc source, brings invisible characters along. Only words over 10 characters get them.
+
+### Validation
+
+One PR at a time, same drill: the test suite (1761 tests at release), a mutation pass showing each new test fails without its fix, CI, and main against the previous release on real RVTools exports.
+
+Before the release, the affected documents ran over 24 exports in en, pt-BR and es, 207 PDFs, with no overlapping words left in any of them. Then every screen and document ran on the published 2.10.2 and on this release over 5 exports in the same three languages: 300 screens, 174 PDFs rendered by the release image's toolchain and 411 text documents per side. 0 errors, 0 dialogs, 0 invalid PDFs, and every difference traced back to what these fixes were allowed to change or to noise in the harness.
+
+Known and still open:
+
+- An export parsed within the first second after page load loses its dvPort rows, so the network YAML lists fewer VLANs. Same bug 2.10.2 reported. No human uploads that fast.
+- 18 words past the margin in the Deployment Plan host list, by up to 40pt. Wrapping would put invisible characters in the FQDNs people copy out of that list, so they stay.
+- 180 words past the margin in the Network Remediation Guide are 4-digit page numbers in the table of contents, by up to 5.5pt. Nobody loses a digit. 1 more in the Storage Analysis report.
+
+---
+
 ## [2.10.2] - 2026-11-02 - Inside the Lines
 
 A patch for what the last two releases left on the page. PDF tables assumed names have spaces in them, and real exports do not always agree: a name with nothing to break on printed straight over the next column. The rest is a slider, a label and a number format, all small, all wrong.

@@ -2,7 +2,9 @@
 
 A wave is one night's work for the cutover team. RVTMA reads an RVTools export and cuts the estate into waves you can hand to that team, in an order that does not start with the hard ones.
 
-This is what it decides for you, what it deliberately leaves alone, and how to drive it.
+This is what it decides for you, what you decide, what it deliberately leaves alone, and how to drive it.
+
+The short version of the division of labour: **which VMs migrate is yours, how they group into waves is the tool's.**
 
 The waves appear in two places, the Wave Execution Playbook and the Migration Plan, and they describe the same waves. Numbering and labels differ between the two; which VMs ride together does not. There is a test that runs both generators over thirty-two setting combinations and fails if that stops being true, because it stopped being true once already.
 
@@ -29,6 +31,18 @@ Waves come out in **crawl-walk-run** order: every simple wave, then every medium
 
 None of them disappear. They land on the **Excluded VMs** sheet with the reason and a recommended action, so nobody has to wonder whether the tool lost them.
 
+## What you choose
+
+**Which VMs are in the plan.** Turn on **Select VMs for this wave** on the estimator and paste the list of names, separated by newlines, commas or semicolons, or pick a cluster from the dropdown. The time estimate, the waves, the schedule, the `.ics` and the playbook then describe that selection instead of the whole estate.
+
+It reports what matched and what did not. A name the customer sent that is not in this export is a question for them, not something to drop quietly. Matching ignores case and stray whitespace, which is where a copied spreadsheet column usually goes wrong.
+
+Turning it off returns to the whole estate but keeps your picks, so a misclick costs nothing. Only the explicit clear discards them. Nothing is written to disk: a selection is a list of customer VM names, and those do not belong there, so it does not survive a page reload.
+
+**How VMs group into ecosystems.** Folder Structure, on the same screen. If the waves look nothing like your organisation, this is the setting, not the spreadsheet.
+
+**The size of a wave, and whether small ecosystems share one.** Covered below.
+
 ## What it does not do
 
 **It does not let you reorder waves.** The up and down arrows on the estimator order the maintenance-window calendar and the `.ics` export, not the wave numbering in the playbook. That is on purpose. The plan is a suggestion, customers re-cut it every time, and an analyst who needs a different order has the spreadsheet.
@@ -37,7 +51,7 @@ None of them disappear. They land on the **Excluded VMs** sheet with the reason 
 
 **It is not a schedule.** Waves say what goes together. The Migration Window Schedule, further down the same screen, is what packs them into your maintenance windows and produces dates.
 
-**It does not size your target cluster.** If you plan a subset with "Select VMs for this wave", Cluster Architecture, Storage Analysis and the Subscription Estimator keep describing every VM in the export, because the ones you left out still occupy hosts, datastores and VLANs until they move.
+**It does not narrow the sizing to your subset.** When you select VMs as above, Cluster Architecture, Storage Analysis and the Subscription Estimator keep describing every VM in the export, because the ones you left out still occupy hosts, datastores and VLANs until they move.
 
 ## The two settings that change the shape
 
@@ -51,7 +65,7 @@ Load the export, open **Migration Time Estimator**. The screen tells you which g
 
 Set the caps to a night your team can actually work. The defaults assume the wave is the unit of a maintenance window.
 
-Migrating a subset first? Turn on **Select VMs for this wave** and paste the list of names, or pick a cluster. It reports what matched and what did not, because a name the customer sent that is not in this export is a question for them, not something to drop quietly.
+Migrating a subset first? Use Select VMs for this wave, described above.
 
 Then download the **Wave Execution Playbook**. In the Migration Waves sheet, filter the Cluster column to your cluster and the Wave column to your night. Wave labels are zero-padded so the filter dropdown sorts naturally rather than putting Wave 100 next to Wave 10.
 
